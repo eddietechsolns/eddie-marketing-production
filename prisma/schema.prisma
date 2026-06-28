@@ -1,0 +1,472 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Page {
+  id              Int      @id @default(autoincrement())
+  title           String
+  slug            String   @unique
+  content         String?
+  excerpt         String?
+  status          String   @default("draft")
+  featuredImage   String?
+  seoTitle        String?
+  seoDescription  String?
+  canonicalUrl    String?
+  ogTitle         String?
+  ogDescription   String?
+  ogImage         String?
+  legacyWpId      Int?
+  legacyUrl       String?
+  importStatus    String   @default("none")
+  migrationNotes  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([legacyWpId])
+  @@index([importStatus])
+}
+
+// ─── Service taxonomy ───────────────────────────────────────────────────────
+
+model ServiceCategory {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  status      String    @default("published")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  services    Service[]
+}
+
+model Service {
+  id             Int              @id @default(autoincrement())
+  title          String
+  slug           String           @unique
+  categoryId     Int?
+  category       ServiceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  excerpt        String?
+  content        String?
+  featuredImage  String?
+  seoTitle       String?
+  seoDescription String?
+  canonicalUrl   String?
+  ogTitle        String?
+  ogDescription  String?
+  ogImage        String?
+  legacyWpId     Int?
+  legacyUrl      String?
+  importStatus   String           @default("none")
+  migrationNotes String?
+  status         String           @default("draft")
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([categoryId])
+  @@index([legacyWpId])
+  @@index([importStatus])
+}
+
+// ─── Portfolio taxonomy ──────────────────────────────────────────────────────
+
+model PortfolioCategory {
+  id          Int                @id @default(autoincrement())
+  name        String             @unique
+  slug        String             @unique
+  description String?
+  status      String             @default("published")
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  projects    PortfolioProject[]
+}
+
+model PortfolioProject {
+  id             Int                @id @default(autoincrement())
+  title          String
+  slug           String             @unique
+  client         String?
+  excerpt        String?
+  content        String?
+  featuredImage  String?
+  categoryId     Int?
+  category       PortfolioCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  industries     Industry[]
+  locations      Location[]
+  services       String[]
+  seoTitle       String?
+  seoDescription String?
+  canonicalUrl   String?
+  ogTitle        String?
+  ogDescription  String?
+  ogImage        String?
+  legacyWpId     Int?
+  legacyUrl      String?
+  importStatus   String             @default("none")
+  migrationNotes String?
+  status         String             @default("draft")
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([categoryId])
+  @@index([legacyWpId])
+  @@index([importStatus])
+}
+
+// ─── Blog taxonomy ───────────────────────────────────────────────────────────
+
+model Category {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  slug        String     @unique
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  posts       BlogPost[]
+}
+
+model BlogPost {
+  id             Int        @id @default(autoincrement())
+  title          String
+  slug           String     @unique
+  excerpt        String?
+  content        String?
+  author         String?
+  featuredImage  String?
+  categories     Category[]
+  seoTitle       String?
+  seoDescription String?
+  canonicalUrl   String?
+  ogTitle        String?
+  ogDescription  String?
+  ogImage        String?
+  legacyWpId     Int?
+  legacyUrl      String?
+  importStatus   String     @default("none")
+  migrationNotes String?
+  status         String     @default("draft")
+  publishedAt    DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([publishedAt])
+  @@index([status])
+  @@index([legacyWpId])
+  @@index([importStatus])
+}
+
+// ─── Geographic & industry taxonomy ─────────────────────────────────────────
+
+model Industry {
+  id             Int                @id @default(autoincrement())
+  title          String
+  slug           String             @unique
+  excerpt        String?
+  content        String?
+  featuredImage  String?
+  seoTitle       String?
+  seoDescription String?
+  canonicalUrl   String?
+  ogTitle        String?
+  ogDescription  String?
+  ogImage        String?
+  legacyWpId     Int?
+  legacyUrl      String?
+  importStatus   String             @default("none")
+  migrationNotes String?
+  status         String             @default("draft")
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  projects       PortfolioProject[]
+
+  @@index([legacyWpId])
+  @@index([importStatus])
+}
+
+model Location {
+  id             Int                @id @default(autoincrement())
+  title          String
+  slug           String             @unique
+  city           String?
+  state          String?
+  excerpt        String?
+  content        String?
+  featuredImage  String?
+  seoTitle       String?
+  seoDescription String?
+  canonicalUrl   String?
+  ogTitle        String?
+  ogDescription  String?
+  ogImage        String?
+  legacyWpId     Int?
+  legacyUrl      String?
+  importStatus   String             @default("none")
+  migrationNotes String?
+  status         String             @default("draft")
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  projects       PortfolioProject[]
+
+  @@index([state])
+  @@index([legacyWpId])
+  @@index([importStatus])
+}
+
+// ─── SEO overrides ───────────────────────────────────────────────────────────
+
+model SeoMetadata {
+  id             Int      @id @default(autoincrement())
+  entityType     String
+  entityId       Int
+  seoTitle       String?
+  seoDescription String?
+  canonicalUrl   String?
+  ogTitle        String?
+  ogDescription  String?
+  ogImage        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([entityType, entityId])
+}
+
+// ─── Redirect system ─────────────────────────────────────────────────────────
+
+model Redirect {
+  id         Int      @id @default(autoincrement())
+  sourceUrl  String   @unique
+  targetUrl  String
+  statusCode Int      @default(301)
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([sourceUrl])
+}
+
+model PillarOverride {
+  id          Int      @id @default(autoincrement())
+  clusterId   String   @unique
+  contentKind String   // "page" | "post"
+  contentId   Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Lead Capture ────────────────────────────────────────────────────────────
+
+model Lead {
+  id              Int            @id @default(autoincrement())
+  name            String
+  company         String?
+  email           String
+  phone           String?
+  country         String?
+  serviceInterest String?
+  message         String?
+  status          String         @default("new")
+
+  // Attribution
+  landingPage     String?
+  referrer        String?
+  utmSource       String?
+  utmMedium       String?
+  utmCampaign     String?
+  utmContent      String?
+  utmTerm         String?
+
+  // Sales pipeline
+  expectedValue   Float?
+  currency        String?        @default("USD")
+  assignedTo      String?
+  priority        String?        @default("Medium")
+  nextFollowUpAt  DateTime?
+
+  // Recruitment — populated for JOB_APPLICATION / INTERNSHIP_APPLICATION
+  leadSource      String?        // WEBSITE_FORM | JOB_APPLICATION | INTERNSHIP_APPLICATION
+  linkedin        String?
+  portfolio       String?
+  university      String?
+  currentPosition String?
+  graduationYear  String?
+  roleApplied     String?
+  department      String?
+
+  notes           LeadNote[]
+  timeline        LeadTimeline[]
+  chatSessions    ChatSession[]
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([serviceInterest])
+  @@index([priority])
+  @@index([nextFollowUpAt])
+  @@index([utmSource])
+  @@index([utmCampaign])
+  @@index([leadSource])
+}
+
+model LeadNote {
+  id        Int      @id @default(autoincrement())
+  leadId    Int
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  note      String
+  createdBy String?
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+}
+
+model LeadTimeline {
+  id        Int      @id @default(autoincrement())
+  leadId    Int
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  eventType String
+  eventText String
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+}
+
+// ─── Case Study & Authority Engine ───────────────────────────────────────────
+
+model CaseStudy {
+  id          Int      @id @default(autoincrement())
+  title       String
+  slug        String   @unique
+  status      String   @default("draft")
+
+  // Client Information
+  clientName  String?
+  industry    String?
+  country     String?
+
+  // Service Information
+  serviceType String?
+
+  // Case Study Content
+  challenge        String?
+  strategy         String?
+  implementation   String?
+  results          String?
+  testimonial      String?
+
+  // Metrics
+  trafficIncreasePercent    Float?
+  leadIncreasePercent       Float?
+  conversionIncreasePercent Float?
+  revenueGenerated          String?
+
+  // Media
+  featuredImage String?
+  galleryImages String[]
+
+  // SEO
+  seoTitle       String?
+  seoDescription String?
+  canonicalUrl   String?
+  ogTitle        String?
+  ogDescription  String?
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status])
+  @@index([industry])
+  @@index([serviceType])
+  @@index([publishedAt])
+}
+
+// ─── AI Chat ──────────────────────────────────────────────────────────────────
+
+model ChatSession {
+  id          String        @id @default(cuid())
+  visitorId   String
+  landingPage String?
+  referrer    String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  leadId      Int?
+  lead        Lead?         @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  messages    ChatMessage[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([visitorId])
+  @@index([leadId])
+  @@index([createdAt])
+}
+
+model ChatMessage {
+  id        String      @id @default(cuid())
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      String
+  content   String
+  createdAt DateTime    @default(now())
+
+  @@index([sessionId])
+}
+
+// ─── Jobs ────────────────────────────────────────────────────────────────────
+
+model Job {
+  id               Int       @id @default(autoincrement())
+  title            String
+  slug             String    @unique
+  department       String
+  location         String
+  employmentType   String
+  experienceLevel  String
+  description      String?
+  responsibilities String?
+  requirements     String?
+  preferredSkills  String?
+  salaryRange      String?
+  careerGrowth     String?
+  faqs             String?
+  seoTitle         String?
+  seoDescription   String?
+  status           String    @default("draft")
+  publishedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([status])
+  @@index([department])
+}
+
+model SiteSettings {
+  id                       Int      @id @default(autoincrement())
+  ga4MeasurementId         String?
+  googleAdsConversionId    String?
+  googleAdsConversionLabel String?
+  headerLogoUrl            String?
+  footerLogoUrl            String?
+  faviconUrl               String?
+  clientsServed            String?
+  retentionRate            String?
+  revenueGenerated         String?
+  yearsExperience          String?
+  updatedAt                DateTime @updatedAt
+}
