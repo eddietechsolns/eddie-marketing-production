@@ -21,7 +21,7 @@ function IconDocument({ className }: { className?: string }) {
 function IconPencil({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
     </svg>
   );
 }
@@ -104,86 +104,78 @@ function IconArrowsUpDown({ className }: { className?: string }) {
     </svg>
   );
 }
+function IconChat({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+    </svg>
+  );
+}
 
 // ─── Navigation structure ───────────────────────────────────────────────────
 
 const NAV_SECTIONS = [
   {
     label: null,
-    icon: null,
     items: [
       { href: "/admin", label: "Dashboard", exact: true, icon: IconGrid },
     ],
   },
   {
-    label: "Website",
-    icon: IconDocument,
+    label: "Content",
     items: [
       { href: "/admin/pages", label: "Pages", icon: IconDocument },
       { href: "/admin/posts", label: "Blog Posts", icon: IconPencil },
       { href: "/admin/portfolio", label: "Portfolio", icon: IconPhoto },
-      { href: "/admin/portfolio-categories", label: "Portfolio Categories", icon: IconDocument },
       { href: "/admin/case-studies", label: "Case Studies", icon: IconBriefcase },
     ],
   },
   {
     label: "Marketing",
-    icon: IconChartBar,
     items: [
       { href: "/admin/services", label: "Services", icon: IconBriefcase },
-      { href: "/admin/service-categories", label: "Service Categories", icon: IconDocument },
       { href: "/admin/industries", label: "Industries", icon: IconChartBar },
       { href: "/admin/locations", label: "Locations", icon: IconMapPin },
-    ],
-  },
-  {
-    label: "Growth",
-    icon: IconAcademic,
-    items: [
       { href: "/admin/posts?type=academy", label: "Academy", icon: IconAcademic },
       { href: "/admin/pages?type=tools", label: "Free Tools", icon: IconBeaker },
     ],
   },
   {
-    label: "SEO",
-    icon: IconMagnify,
+    label: "Leads",
     items: [
-      { href: "/admin/seo/site-health", label: "SEO Health", icon: IconChartBar },
-      { href: "/admin/seo/content-gaps", label: "Content Gaps", icon: IconMagnify },
+      { href: "/admin/leads/dashboard", label: "Dashboard", icon: IconChartBar },
+      { href: "/admin/leads", label: "All Leads", exact: true, icon: IconUsers },
+      { href: "/admin/leads/chat-sessions", label: "AI Chat", icon: IconChat },
+    ],
+  },
+  {
+    label: "SEO",
+    items: [
+      { href: "/admin/seo/site-health", label: "SEO Health", icon: IconMagnify },
+      { href: "/admin/seo/content-gaps", label: "Content Gaps", icon: IconChartBar },
       { href: "/admin/redirects", label: "Redirects", icon: IconArrowsUpDown },
       { href: "/admin/seo/internal-links", label: "Internal Links", icon: IconArrowUp },
       { href: "/admin/seo/technical-seo", label: "Technical SEO", icon: IconCog },
-      { href: "/admin/seo/url-mapping", label: "URL Mapping", icon: IconDocument },
       { href: "/admin/seo/launch-audit", label: "Launch Audit", icon: IconMagnify },
       { href: "/admin/seo/pillars", label: "Pillar Overrides", icon: IconDocument },
       { href: "/admin/seo/silo-architecture", label: "Silo Architecture", icon: IconGrid },
       { href: "/admin/seo/case-study-health", label: "Case Study Health", icon: IconBriefcase },
-      { href: "/admin/seo/tracking", label: "Tracking", icon: IconCog },
-    ],
-  },
-  {
-    label: "Leads",
-    icon: IconUsers,
-    items: [
-      { href: "/admin/leads/dashboard", label: "Lead Dashboard", icon: IconChartBar },
-      { href: "/admin/leads", label: "All Leads", exact: true, icon: IconUsers },
-      { href: "/admin/leads/chat-sessions", label: "AI Chat Sessions", icon: IconDocument },
     ],
   },
   {
     label: "Settings",
-    icon: IconCog,
     items: [
       { href: "/admin/settings/branding", label: "Branding", icon: IconCog },
       { href: "/admin/settings/stats", label: "Homepage Stats", icon: IconChartBar },
       { href: "/admin/seo/tracking", label: "Tracking", icon: IconDocument },
+      { href: "/admin/portfolio-categories", label: "Portfolio Categories", icon: IconDocument },
+      { href: "/admin/service-categories", label: "Service Categories", icon: IconDocument },
     ],
   },
   {
     label: "Migration",
-    icon: IconArrowsUpDown,
     items: [
-      { href: "/admin/migration", label: "Migration Dashboard", icon: IconGrid },
+      { href: "/admin/migration", label: "Overview", icon: IconGrid },
       { href: "/admin/migration/import", label: "WordPress Import", icon: IconArrowUp },
       { href: "/admin/migration/queue", label: "Import Queue", icon: IconDocument },
       { href: "/admin/migration/audit", label: "Content Audit", icon: IconMagnify },
@@ -206,75 +198,81 @@ export default function Sidebar() {
   }
 
   function isActive(href: string, exact?: boolean) {
-    return exact
-      ? pathname === href
-      : pathname === href || pathname.startsWith(href + "/");
+    if (exact) return pathname === href;
+    const base = href.split("?")[0];
+    return pathname === base || pathname.startsWith(base + "/");
   }
 
   return (
-    <aside className="w-56 shrink-0 bg-slate-900 text-gray-300 flex flex-col h-screen sticky top-0">
-      {/* Header */}
-      <div className="px-4 py-4 border-b border-slate-700/60">
+    <aside className="w-56 shrink-0 bg-[#0f1117] text-slate-300 flex flex-col h-screen sticky top-0 border-r border-slate-800/60">
+
+      {/* Logo */}
+      <div className="px-4 py-4 border-b border-slate-800/60">
         <Link href="/admin" className="flex items-center gap-2.5 group">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shrink-0 shadow-sm">
             <span className="text-white font-bold text-xs">E</span>
           </div>
           <div>
             <p className="text-white font-semibold text-sm leading-none">Eddie Marketing</p>
-            <p className="text-slate-400 text-xs leading-none mt-0.5">Command Center</p>
+            <p className="text-slate-500 text-[10px] leading-none mt-0.5 font-medium">Command Center</p>
           </div>
         </Link>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 py-2 overflow-y-auto scrollbar-thin">
+      <nav className="flex-1 py-3 overflow-y-auto">
         {NAV_SECTIONS.map((section) => (
-          <div key={section.label ?? "root"} className="mb-1">
+          <div key={section.label ?? "root"} className="mb-3">
             {section.label && (
-              <p className="px-4 pt-3 pb-1 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
+              <p className="px-4 pb-1 pt-1 text-[9px] font-bold text-slate-600 uppercase tracking-[0.12em]">
                 {section.label}
               </p>
             )}
-            {section.items.map((item) => {
-              const active = isActive(item.href, item.exact);
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-2.5 px-4 py-1.5 text-sm transition-all rounded-none ${
-                    active
-                      ? "bg-blue-600/20 text-blue-400 border-r-2 border-blue-500"
-                      : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-                  }`}
-                >
-                  <Icon className="w-3.5 h-3.5 shrink-0 opacity-70" />
-                  <span className="truncate">{item.label}</span>
-                </Link>
-              );
-            })}
+            <div className="space-y-0.5 px-2">
+              {section.items.map((item) => {
+                const active = isActive(item.href, item.exact);
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-2.5 px-2.5 py-1.5 text-xs rounded-lg transition-all duration-150 ${
+                      active
+                        ? "bg-blue-600/20 text-blue-300 font-semibold"
+                        : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 font-medium"
+                    }`}
+                  >
+                    <Icon className={`w-3.5 h-3.5 shrink-0 ${active ? "text-blue-400" : "opacity-60"}`} />
+                    <span className="truncate">{item.label}</span>
+                    {active && (
+                      <span className="ml-auto w-1 h-1 rounded-full bg-blue-400 shrink-0" />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         ))}
       </nav>
 
       {/* Footer */}
-      <div className="px-4 py-3 border-t border-slate-700/60">
+      <div className="px-4 py-3 border-t border-slate-800/60 space-y-1">
         <Link
           href="/"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white mb-2 transition-colors"
+          className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 transition-all font-medium"
         >
-          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <svg className="w-3.5 h-3.5 shrink-0 opacity-60" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
           </svg>
           View Live Site
         </Link>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
+          className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 transition-all font-medium"
         >
-          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <svg className="w-3.5 h-3.5 shrink-0 opacity-60" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
           </svg>
           Sign out

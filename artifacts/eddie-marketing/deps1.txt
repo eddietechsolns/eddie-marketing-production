@@ -1,0 +1,2 @@
+./.replit-artifact/artifact.toml:21:build = [ "pnpm", "--filter", "@workspace/eddie-marketing", "run", "build" ]
+./package.json:2:  "name": "@workspace/eddie-marketing",
