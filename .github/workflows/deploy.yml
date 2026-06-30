@@ -24,13 +24,25 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -p ${{ secrets.PORT }} -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
 
-      - name: Sync files to VPS
+           - name: Sync files to VPS
         run: |
-          rsync -az --delete \
+          echo "=================================================="
+          echo "Deploying to: ${{ secrets.TARGET_PATH }}"
+          echo "=================================================="
+
+          rsync -avz --delete --progress \
             --exclude-from=.rsyncignore \
             -e "ssh -p ${{ secrets.PORT }}" \
             ./ \
             ${{ secrets.USERNAME }}@${{ secrets.HOST }}:${{ secrets.TARGET_PATH }}/
+
+          echo "=================================================="
+          echo "Files on VPS:"
+          echo "=================================================="
+
+          ssh -p ${{ secrets.PORT }} \
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }} \
+            "pwd && ls -lah ${{ secrets.TARGET_PATH }} | head -30"
 
       - name: Run deployment script
         run: |
