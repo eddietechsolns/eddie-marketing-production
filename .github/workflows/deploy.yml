@@ -1,0 +1,39 @@
+name: Deploy to Production VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add VPS to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p ${{ secrets.PORT }} -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
+
+      - name: Sync files to VPS
+        run: |
+          rsync -az --delete \
+            --exclude-from=.rsyncignore \
+            -e "ssh -p ${{ secrets.PORT }}" \
+            ./ \
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }}:${{ secrets.TARGET_PATH }}/
+
+      - name: Run deployment script
+        run: |
+          ssh -p ${{ secrets.PORT }} \
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }} \
+            "/home/eddie/deploy.sh"
