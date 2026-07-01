@@ -6,6 +6,7 @@ import type { Page } from "@prisma/client";
 import { FormField, Input, Textarea, Select } from "@/components/admin/FormField";
 import SeoFields from "@/components/admin/SeoFields";
 import { SaveButton } from "@/components/admin/ActionButtons";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 
 function slugify(str: string) {
   return str.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -50,7 +51,7 @@ export default function PageForm({ page }: { page?: Page }) {
       </FormField>
 
       <FormField label="Content" name="content">
-        <Textarea name="content" rows={10} defaultValue={page?.content ?? ""} placeholder="Page content..." />
+        <RichTextEditor name="content" defaultValue={page?.content ?? ""} placeholder="Page content…" />
       </FormField>
 
       <FormField label="Featured Image URL" name="featuredImage">

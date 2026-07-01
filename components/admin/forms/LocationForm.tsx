@@ -6,6 +6,7 @@ import type { Location } from "@prisma/client";
 import { FormField, Input, Textarea, Select } from "@/components/admin/FormField";
 import SeoFields from "@/components/admin/SeoFields";
 import { SaveButton } from "@/components/admin/ActionButtons";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 
 function slugify(str: string) {
   return str.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -59,7 +60,7 @@ export default function LocationForm({ location }: { location?: Location }) {
       </FormField>
 
       <FormField label="Content" name="content">
-        <Textarea name="content" rows={10} defaultValue={location?.content ?? ""} placeholder="Location page content..." />
+        <RichTextEditor name="content" defaultValue={location?.content ?? ""} placeholder="Location page content…" />
       </FormField>
 
       <FormField label="Status" name="status">

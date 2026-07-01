@@ -6,6 +6,7 @@ import type { CaseStudy } from "@prisma/client";
 import { FormField, Input, Textarea, Select } from "@/components/admin/FormField";
 import SeoFields from "@/components/admin/SeoFields";
 import { SaveButton } from "@/components/admin/ActionButtons";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 
 function slugify(str: string) {
   return str
@@ -117,39 +118,19 @@ export default function CaseStudyForm({ caseStudy }: Props) {
         </h3>
 
         <FormField label="Challenge" name="challenge" hint="What problem did the client face?">
-          <Textarea
-            name="challenge"
-            rows={4}
-            defaultValue={caseStudy?.challenge ?? ""}
-            placeholder="The client was struggling with..."
-          />
+          <RichTextEditor name="challenge" defaultValue={caseStudy?.challenge ?? ""} placeholder="The client was struggling with…" minHeight={180} />
         </FormField>
 
         <FormField label="Strategy" name="strategy" hint="What approach did we take?">
-          <Textarea
-            name="strategy"
-            rows={4}
-            defaultValue={caseStudy?.strategy ?? ""}
-            placeholder="We developed a strategy that..."
-          />
+          <RichTextEditor name="strategy" defaultValue={caseStudy?.strategy ?? ""} placeholder="We developed a strategy that…" minHeight={180} />
         </FormField>
 
         <FormField label="Implementation" name="implementation" hint="What specific actions were taken?">
-          <Textarea
-            name="implementation"
-            rows={4}
-            defaultValue={caseStudy?.implementation ?? ""}
-            placeholder="Our team executed..."
-          />
+          <RichTextEditor name="implementation" defaultValue={caseStudy?.implementation ?? ""} placeholder="Our team executed…" minHeight={180} />
         </FormField>
 
         <FormField label="Results" name="results" hint="What were the outcomes?">
-          <Textarea
-            name="results"
-            rows={4}
-            defaultValue={caseStudy?.results ?? ""}
-            placeholder="Within 6 months, the client saw..."
-          />
+          <RichTextEditor name="results" defaultValue={caseStudy?.results ?? ""} placeholder="Within 6 months, the client saw…" minHeight={180} />
         </FormField>
 
         <FormField label="Client Testimonial" name="testimonial" hint="Direct quote from the client">

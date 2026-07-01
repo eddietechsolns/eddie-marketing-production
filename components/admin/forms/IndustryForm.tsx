@@ -6,6 +6,7 @@ import type { Industry } from "@prisma/client";
 import { FormField, Input, Textarea, Select } from "@/components/admin/FormField";
 import SeoFields from "@/components/admin/SeoFields";
 import { SaveButton } from "@/components/admin/ActionButtons";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 
 function slugify(str: string) {
   return str.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -50,7 +51,7 @@ export default function IndustryForm({ industry }: { industry?: Industry }) {
       </FormField>
 
       <FormField label="Content" name="content">
-        <Textarea name="content" rows={10} defaultValue={industry?.content ?? ""} placeholder="Industry page content..." />
+        <RichTextEditor name="content" defaultValue={industry?.content ?? ""} placeholder="Industry page content…" />
       </FormField>
 
       <FormField label="Status" name="status">

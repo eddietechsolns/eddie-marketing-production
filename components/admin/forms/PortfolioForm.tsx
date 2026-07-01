@@ -6,6 +6,7 @@ import type { Industry, Location, PortfolioCategory, PortfolioProject } from "@p
 import { FormField, Input, Textarea, Select } from "@/components/admin/FormField";
 import SeoFields from "@/components/admin/SeoFields";
 import { SaveButton } from "@/components/admin/ActionButtons";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 
 function slugify(str: string) {
   return str.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -131,12 +132,7 @@ export default function PortfolioForm({ project, portfolioCategories, industries
       </FormField>
 
       <FormField label="Content" name="content">
-        <Textarea
-          name="content"
-          rows={10}
-          defaultValue={project?.content ?? ""}
-          placeholder="Full case study..."
-        />
+        <RichTextEditor name="content" defaultValue={project?.content ?? ""} placeholder="Full case study…" />
       </FormField>
 
       <FormField label="Status" name="status">

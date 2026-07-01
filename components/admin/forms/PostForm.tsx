@@ -7,6 +7,7 @@ import type { BlogPost, Category } from "@prisma/client";
 import { FormField, Input, Textarea, Select } from "@/components/admin/FormField";
 import SeoFields from "@/components/admin/SeoFields";
 import { SaveButton } from "@/components/admin/ActionButtons";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 
 function slugify(str: string) {
   return str.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -75,7 +76,7 @@ export default function PostForm({ post, categories }: Props) {
       </FormField>
 
       <FormField label="Content" name="content">
-        <Textarea name="content" rows={12} defaultValue={post?.content ?? ""} placeholder="Post content..." />
+        <RichTextEditor name="content" defaultValue={post?.content ?? ""} placeholder="Post content…" />
       </FormField>
 
       <div className="grid grid-cols-2 gap-4">
