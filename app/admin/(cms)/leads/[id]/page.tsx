@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { updateLeadStatus } from "@/actions/updateLeadStatus";
 import { updateLead } from "@/actions/updateLead";
 import { NoteForm } from "@/components/leads/NoteForm";
+import LeadEmailPanel from "@/components/admin/LeadEmailPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -168,6 +169,15 @@ export default async function LeadDetailPage({ params }: Props) {
     include: {
       notes:    { orderBy: { createdAt: "desc" } },
       timeline: { orderBy: { createdAt: "desc" } },
+      emails: {
+        select: {
+          id: true, subject: true, status: true, folder: true,
+          toEmail: true, fromEmail: true, sentAt: true, createdAt: true,
+          _count: { select: { attachments: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      },
     },
   });
   if (!lead) notFound();
@@ -241,13 +251,13 @@ export default async function LeadDetailPage({ params }: Props) {
 
           {/* Quick-action buttons */}
           <div className="flex items-center gap-2 flex-wrap shrink-0">
-            <a
-              href={`mailto:${lead.email}`}
+            <Link
+              href={`/admin/communications/compose?leadId=${lead.id}&to=${encodeURIComponent(lead.email)}&toName=${encodeURIComponent(lead.name)}`}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-semibold hover:bg-blue-100 transition-colors"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
               Email
-            </a>
+            </Link>
             {lead.phone && (
               <a
                 href={`tel:${lead.phone}`}
@@ -484,6 +494,25 @@ export default async function LeadDetailPage({ params }: Props) {
             )}
           </SectionCard>
 
+          {/* ── Email History ───────────────────────────────────────────────── */}
+          <SectionCard
+            title="Email History"
+            icon={
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
+            }
+          >
+            <LeadEmailPanel
+              leadId={lead.id}
+              leadEmail={lead.email}
+              leadName={lead.name}
+              emails={lead.emails.map((e) => ({
+                ...e,
+                sentAt: e.sentAt?.toISOString() ?? null,
+                createdAt: e.createdAt.toISOString(),
+              }))}
+            />
+          </SectionCard>
+
           {/* ── Timeline / Activity Log ──────────────────────────────────────── */}
           <SectionCard
             title="Activity Log"
@@ -669,8 +698,8 @@ export default async function LeadDetailPage({ params }: Props) {
           <div className="bg-white rounded-2xl border border-slate-200/80 px-5 py-4">
             <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">Quick Actions</h3>
             <div className="space-y-2">
-              <a
-                href={`mailto:${lead.email}`}
+              <Link
+                href={`/admin/communications/compose?leadId=${lead.id}&to=${encodeURIComponent(lead.email)}&toName=${encodeURIComponent(lead.name)}`}
                 className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl border border-slate-200 hover:bg-blue-50 hover:border-blue-200 transition-colors group"
               >
                 <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
@@ -680,7 +709,7 @@ export default async function LeadDetailPage({ params }: Props) {
                   <p className="text-xs font-semibold text-slate-700 group-hover:text-blue-700">Send Email</p>
                   <p className="text-[10px] text-slate-400 truncate">{lead.email}</p>
                 </div>
-              </a>
+              </Link>
 
               {lead.phone && (
                 <a

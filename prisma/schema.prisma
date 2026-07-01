@@ -329,6 +329,7 @@ model Lead {
   notes           LeadNote[]
   timeline        LeadTimeline[]
   chatSessions    ChatSession[]
+  emails          Email[]
 
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
@@ -473,6 +474,65 @@ model Job {
 
   @@index([status])
   @@index([department])
+}
+
+// ─── Email Center ─────────────────────────────────────────────────────────────
+
+model Email {
+  id          Int               @id @default(autoincrement())
+  subject     String            @default("")
+  body        String            @default("")
+  bodyText    String?
+  fromName    String?
+  fromEmail   String            @default("")
+  toEmail     String            @default("")
+  toName      String?
+  cc          String?
+  bcc         String?
+  status      String            @default("draft")
+  folder      String            @default("drafts")
+  leadId      Int?
+  lead        Lead?             @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  sentAt      DateTime?
+  readAt      DateTime?
+  errorMsg    String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  attachments EmailAttachment[]
+
+  @@index([leadId])
+  @@index([status])
+  @@index([folder])
+  @@index([sentAt])
+  @@index([createdAt])
+}
+
+model EmailAttachment {
+  id        Int      @id @default(autoincrement())
+  emailId   Int
+  email     Email    @relation(fields: [emailId], references: [id], onDelete: Cascade)
+  filename  String
+  size      Int
+  mimeType  String
+  data      String
+  createdAt DateTime @default(now())
+
+  @@index([emailId])
+}
+
+model EmailTemplate {
+  id         Int      @id @default(autoincrement())
+  name       String
+  subject    String
+  body       String
+  category   String?
+  isActive   Boolean  @default(true)
+  usageCount Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([category])
 }
 
 model SiteSettings {
