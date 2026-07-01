@@ -14,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Start SSH agent
+      - name: Start SSH Agent
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -24,28 +24,39 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -p ${{ secrets.PORT }} -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
 
-      - name: Sync files to VPS
+      - name: Deploy directly to live folder
         run: |
-          echo "=================================================="
-          echo "Deploying to: ${{ secrets.TARGET_PATH }}"
-          echo "=================================================="
+          echo "======================================"
+          echo "Current commit:"
+          echo "${{ github.sha }}"
+          echo ""
+          echo "Deploying directly to:"
+          echo "/var/www/eddie-marketing"
+          echo "======================================"
 
           rsync -avz --delete --progress \
             --exclude-from=.rsyncignore \
             -e "ssh -p ${{ secrets.PORT }}" \
             ./ \
-            ${{ secrets.USERNAME }}@${{ secrets.HOST }}:${{ secrets.TARGET_PATH }}/
-
-          echo "=================================================="
-          echo "Files on VPS:"
-          echo "=================================================="
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/var/www/eddie-marketing/
 
           ssh -p ${{ secrets.PORT }} \
-            ${{ secrets.USERNAME }}@${{ secrets.HOST }} \
-            "pwd && ls -lah ${{ secrets.TARGET_PATH }} | head -30"
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }} << EOF
 
-      - name: Run deployment script
-        run: |
-          ssh -p ${{ secrets.PORT }} \
-            ${{ secrets.USERNAME }}@${{ secrets.HOST }} \
-            "/home/eddie/deploy.sh"
+            set -e
+
+            cd /var/www/eddie-marketing
+
+            echo "${{ github.sha }}" > VERSION
+            echo "Branch: ${{ github.ref_name }}" >> VERSION
+            echo "Commit: ${{ github.event.head_commit.message }}" >> VERSION
+            echo "Deployed: $(date -u)" >> VERSION
+
+            /home/eddie/deploy.sh
+
+            echo ""
+            echo "========== DEPLOYED VERSION =========="
+            cat VERSION
+            echo "======================================"
+
+          EOF
