@@ -24,7 +24,7 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -p ${{ secrets.PORT }} -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
 
-           - name: Sync files to VPS
+      - name: Sync files to VPS
         run: |
           echo "=================================================="
           echo "Deploying to: ${{ secrets.TARGET_PATH }}"
