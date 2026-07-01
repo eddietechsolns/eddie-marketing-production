@@ -126,6 +126,12 @@ interface Props {
     leadSource?: string;
     view?:       string;
     sort?:       string;
+    dateFrom?:   string;
+    dateTo?:     string;
+    country?:    string;
+    assigned?:   string;
+    landing?:    string;
+    device?:     string;
   }>;
 }
 
@@ -142,6 +148,12 @@ export default async function LeadsPage({ searchParams }: Props) {
     leadSource: filterLeadSource,
     view     = "table",
     sort     = "date",
+    dateFrom:   filterDateFrom,
+    dateTo:     filterDateTo,
+    country:    filterCountry,
+    assigned:   filterAssigned,
+    landing:    filterLanding,
+    device:     filterDevice,
   } = params;
 
   const now = new Date();
@@ -152,10 +164,23 @@ export default async function LeadsPage({ searchParams }: Props) {
   if (filterPriority)   where.priority        = filterPriority;
   if (filterService)    where.serviceInterest = filterService;
   if (filterSource)     where.utmSource       = filterSource;
+  if (filterCountry)    where.country         = filterCountry;
+  if (filterAssigned)   where.assignedTo      = filterAssigned;
+  if (filterLanding)    where.landingPage     = filterLanding;
+  if (filterDevice)     where.utmMedium       = filterDevice;
   if (filterLeadSource === "RECRUITMENT") {
     where.leadSource = { in: ["JOB_APPLICATION", "INTERNSHIP_APPLICATION"] };
   } else if (filterLeadSource) {
     where.leadSource = filterLeadSource;
+  }
+  if (filterDateFrom || filterDateTo) {
+    where.createdAt = {};
+    if (filterDateFrom) (where.createdAt as Prisma.DateTimeFilter).gte = new Date(filterDateFrom);
+    if (filterDateTo) {
+      const end = new Date(filterDateTo);
+      end.setHours(23, 59, 59, 999);
+      (where.createdAt as Prisma.DateTimeFilter).lte = end;
+    }
   }
   if (q) {
     where.OR = [
@@ -169,7 +194,11 @@ export default async function LeadsPage({ searchParams }: Props) {
     ];
   }
 
-  const activeFilters = !!(filterStatus || filterPriority || q || filterService || filterSource || filterLeadSource);
+  const activeFilters = !!(
+    filterStatus || filterPriority || q || filterService || filterSource ||
+    filterLeadSource || filterCountry || filterAssigned || filterLanding ||
+    filterDevice || filterDateFrom || filterDateTo
+  );
 
   // ── parallel queries ──────────────────────────────────────────────────────
   const [
@@ -179,6 +208,11 @@ export default async function LeadsPage({ searchParams }: Props) {
     kpis,
     attentionLeads,
     leadSourceCounts,
+    countryCounts,
+    assignedCounts,
+    landingCounts,
+    serviceCounts,
+    deviceCounts,
   ] = await Promise.all([
     prisma.lead.findMany({ where, orderBy: { createdAt: "desc" }, take: 200 }),
     prisma.lead.groupBy({ by: ["status"], _count: { id: true } }),
@@ -202,6 +236,11 @@ export default async function LeadsPage({ searchParams }: Props) {
       take: 10,
     }),
     prisma.lead.groupBy({ by: ["leadSource"], _count: { id: true } }),
+    prisma.lead.groupBy({ by: ["country"],         _count: { id: true }, orderBy: { _count: { id: "desc" } }, having: { country: { not: null } } }),
+    prisma.lead.groupBy({ by: ["assignedTo"],      _count: { id: true }, orderBy: { _count: { id: "desc" } }, having: { assignedTo: { not: null } } }),
+    prisma.lead.groupBy({ by: ["landingPage"],     _count: { id: true }, orderBy: { _count: { id: "desc" } }, having: { landingPage: { not: null } } }),
+    prisma.lead.groupBy({ by: ["serviceInterest"], _count: { id: true }, orderBy: { _count: { id: "desc" } }, having: { serviceInterest: { not: null } } }),
+    prisma.lead.groupBy({ by: ["utmMedium"],       _count: { id: true }, orderBy: { _count: { id: "desc" } }, having: { utmMedium: { not: null } } }),
   ]);
 
   const [totalAll, totalNew, totalOverdue, pipelineAgg] = kpis;
@@ -285,17 +324,11 @@ export default async function LeadsPage({ searchParams }: Props) {
               {sorted.length === total
                 ? `${total} lead${total !== 1 ? "s" : ""} total`
                 : `${sorted.length} of ${total} leads`}
+              {activeFilters && (
+                <span className="ml-1.5 text-blue-500 font-medium">· filtered</span>
+              )}
             </p>
           </div>
-          {activeFilters && (
-            <Link
-              href="/admin/leads"
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-xs text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
-            >
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
-              Clear filters
-            </Link>
-          )}
         </div>
         <div className="flex items-center gap-2">
           <Link
@@ -423,16 +456,17 @@ export default async function LeadsPage({ searchParams }: Props) {
         </div>
       )}
 
-      {/* ── Search Bar ─────────────────────────────────────────────────────── */}
-      <form method="get" action="/admin/leads">
-        {filterStatus   && <input type="hidden" name="status"   value={filterStatus} />}
-        {filterPriority && <input type="hidden" name="priority" value={filterPriority} />}
-        {filterService  && <input type="hidden" name="service"  value={filterService} />}
-        {filterSource   && <input type="hidden" name="source"   value={filterSource} />}
+      {/* ── Search + Advanced Filters ───────────────────────────────────────── */}
+      <form method="get" action="/admin/leads" className="bg-white rounded-2xl border border-slate-200/80 p-4 space-y-3">
+        {/* preserve link-based filters */}
+        {filterStatus     && <input type="hidden" name="status"     value={filterStatus} />}
+        {filterPriority   && <input type="hidden" name="priority"   value={filterPriority} />}
         {filterLeadSource && <input type="hidden" name="leadSource" value={filterLeadSource} />}
-        {view !== "table" && <input type="hidden" name="view" value={view} />}
-        {sort !== "date"  && <input type="hidden" name="sort" value={sort} />}
-        <div className="relative flex gap-2">
+        {view !== "table" && <input type="hidden" name="view"       value={view} />}
+        {sort !== "date"  && <input type="hidden" name="sort"       value={sort} />}
+
+        {/* Row 1: Search + actions */}
+        <div className="flex gap-2">
           <div className="relative flex-1">
             <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
@@ -442,24 +476,149 @@ export default async function LeadsPage({ searchParams }: Props) {
               name="q"
               defaultValue={q}
               placeholder="Search name, company, email, phone, service, role…"
-              className="w-full border border-slate-200 bg-white rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors"
+              className="w-full border border-slate-200 bg-slate-50 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 focus:bg-white transition-colors"
             />
           </div>
           <button
             type="submit"
             className="px-5 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-xl hover:bg-slate-800 transition-colors shrink-0"
           >
-            Search
+            Apply
           </button>
+          {activeFilters && (
+            <Link
+              href="/admin/leads"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-500 hover:bg-slate-50 transition-colors whitespace-nowrap shrink-0"
+            >
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+              Clear all
+            </Link>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-slate-100" />
+
+        {/* Row 2: Date Range */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-16 shrink-0">Date Range</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <input
+              type="date"
+              name="dateFrom"
+              defaultValue={filterDateFrom}
+              className={`border rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors ${filterDateFrom ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-200 bg-slate-50"}`}
+            />
+            <span className="text-xs text-slate-400">to</span>
+            <input
+              type="date"
+              name="dateTo"
+              defaultValue={filterDateTo}
+              className={`border rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors ${filterDateTo ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-200 bg-slate-50"}`}
+            />
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-slate-100" />
+
+        {/* Row 3: Dropdown filters grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+
+          {/* Service Requested */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Service</label>
+            <select
+              name="service"
+              defaultValue={filterService ?? ""}
+              className={`border rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors ${filterService ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-200 bg-slate-50"}`}
+            >
+              <option value="">All services</option>
+              {serviceCounts.filter(c => c.serviceInterest).map(c => (
+                <option key={c.serviceInterest} value={c.serviceInterest!}>
+                  {c.serviceInterest} ({c._count.id})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Country */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Country</label>
+            <select
+              name="country"
+              defaultValue={filterCountry ?? ""}
+              className={`border rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors ${filterCountry ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-200 bg-slate-50"}`}
+            >
+              <option value="">All countries</option>
+              {countryCounts.filter(c => c.country).map(c => (
+                <option key={c.country} value={c.country!}>
+                  {c.country} ({c._count.id})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Assigned User */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Assigned To</label>
+            <select
+              name="assigned"
+              defaultValue={filterAssigned ?? ""}
+              className={`border rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors ${filterAssigned ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-200 bg-slate-50"}`}
+            >
+              <option value="">All assignees</option>
+              {assignedCounts.filter(c => c.assignedTo).map(c => (
+                <option key={c.assignedTo} value={c.assignedTo!}>
+                  {c.assignedTo} ({c._count.id})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Landing Page */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Landing Page</label>
+            <select
+              name="landing"
+              defaultValue={filterLanding ?? ""}
+              className={`border rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors ${filterLanding ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-200 bg-slate-50"}`}
+            >
+              <option value="">All pages</option>
+              {landingCounts.filter(c => c.landingPage).map(c => (
+                <option key={c.landingPage} value={c.landingPage!}>
+                  {c.landingPage} ({c._count.id})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Device / Channel (UTM Medium) */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Device / Channel</label>
+            <select
+              name="device"
+              defaultValue={filterDevice ?? ""}
+              className={`border rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors ${filterDevice ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-200 bg-slate-50"}`}
+            >
+              <option value="">All channels</option>
+              {deviceCounts.filter(c => c.utmMedium).map(c => (
+                <option key={c.utmMedium} value={c.utmMedium!}>
+                  {c.utmMedium} ({c._count.id})
+                </option>
+              ))}
+            </select>
+          </div>
+
         </div>
       </form>
 
-      {/* ── Filter Bar ─────────────────────────────────────────────────────── */}
+      {/* ── Filter Pills ────────────────────────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-4 space-y-3">
 
-        {/* Status filters */}
+        {/* Status */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-14 shrink-0">Status</span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-16 shrink-0">Status</span>
           <Link
             href={buildUrl({ status: undefined }, params)}
             className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors ${
@@ -492,10 +651,10 @@ export default async function LeadsPage({ searchParams }: Props) {
         {/* Divider */}
         <div className="border-t border-slate-100" />
 
-        {/* Priority + Type filters in one row */}
+        {/* Priority + Lead Source */}
         <div className="flex items-start gap-6 flex-wrap">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-14 shrink-0">Priority</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-16 shrink-0">Priority</span>
             <Link
               href={buildUrl({ priority: undefined }, params)}
               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors ${
@@ -526,7 +685,7 @@ export default async function LeadsPage({ searchParams }: Props) {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-14 shrink-0">Type</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-16 shrink-0">Source</span>
             <Link
               href={buildUrl({ leadSource: undefined }, params)}
               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors ${
@@ -534,6 +693,16 @@ export default async function LeadsPage({ searchParams }: Props) {
               }`}
             >
               All <span className="ml-1 opacity-70">({total})</span>
+            </Link>
+            <Link
+              href={buildUrl({ leadSource: "WEBSITE_FORM" }, params)}
+              className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                filterLeadSource === "WEBSITE_FORM"
+                  ? "bg-slate-700 text-white"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              Web Form <span className="ml-1 opacity-70">({countByLeadSource["WEBSITE_FORM"] ?? 0})</span>
             </Link>
             <Link
               href={buildUrl({ leadSource: "RECRUITMENT" }, params)}
@@ -560,7 +729,7 @@ export default async function LeadsPage({ searchParams }: Props) {
               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                 filterLeadSource === "INTERNSHIP_APPLICATION"
                   ? "bg-teal-600 text-white"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  : "bg-teal-50 text-teal-700 ring-1 ring-teal-200 hover:bg-teal-100"
               }`}
             >
               Internships <span className="ml-1 opacity-70">({countByLeadSource["INTERNSHIP_APPLICATION"] ?? 0})</span>
