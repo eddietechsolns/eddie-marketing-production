@@ -163,6 +163,13 @@ const NAV_SECTIONS = [
     ],
   },
   {
+    label: "Users",
+    items: [
+      { href: "/admin/users", label: "All Users", icon: IconUsers },
+      { href: "/admin/users/new", label: "Add User", icon: IconPencil },
+    ],
+  },
+  {
     label: "Settings",
     items: [
       { href: "/admin/settings/branding", label: "Branding", icon: IconCog },

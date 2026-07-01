@@ -30,6 +30,20 @@ export async function POST(request: Request) {
       name: user.name,
     });
 
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+
+    await prisma.userActivity.create({
+      data: {
+        userId: user.id,
+        action: "login",
+        detail: `Logged in`,
+        ip: request.headers.get("x-forwarded-for") ?? undefined,
+      },
+    }).catch(() => {});
+
     const response = NextResponse.json({ ok: true });
     response.cookies.set("admin-token", token, {
       httpOnly: true,
