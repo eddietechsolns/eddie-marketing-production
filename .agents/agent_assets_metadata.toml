@@ -1,0 +1,92 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "X2xXF7plpf7ZZc8UQQnP8"
+uri = "file://public/city-marketing/dubai-hub.png"
+type = "image"
+title = "Dubai hub digital marketing"
+
+[[generated]]
+id = "XN2UWlSauWxUlSrc3WTcA"
+uri = "file://public/city-marketing/abu-dhabi-hub.png"
+type = "image"
+title = "Abu Dhabi hub digital marketing"
+
+[[generated]]
+id = "a-2GdGhcvHsqGM2RB0FDl"
+uri = "file://public/city-marketing/sharjah-hub.png"
+type = "image"
+title = "Sharjah hub digital marketing"
+
+[[generated]]
+id = "Td-_4RzlQgBt64XIAD7vE"
+uri = "file://public/city-marketing/dubai-marina-var.png"
+type = "image"
+title = "Dubai Marina neighbourhood marketing"
+
+[[generated]]
+id = "hOd6Ev3DYB2oykKXgVPML"
+uri = "file://public/city-marketing/dubai-business-var.png"
+type = "image"
+title = "Dubai business district marketing"
+
+[[generated]]
+id = "7E4HdqJtI3n_5QuGmOXul"
+uri = "file://public/city-marketing/dubai-community-var.png"
+type = "image"
+title = "Dubai community neighbourhood marketing"
+
+[[generated]]
+id = "g-OKy1NOommM-oayckdLd"
+uri = "file://public/city-marketing/abu-dhabi-corniche-var.png"
+type = "image"
+title = "Abu Dhabi Corniche marketing"
+
+[[generated]]
+id = "G3e_vUkG7a4aRTDgx6nSx"
+uri = "file://public/city-marketing/abu-dhabi-island-var.png"
+type = "image"
+title = "Abu Dhabi island neighbourhood marketing"
+
+[[generated]]
+id = "YJAKgjsW33TP6KFYrI12P"
+uri = "file://public/city-marketing/abu-dhabi-financial-var.png"
+type = "image"
+title = "Abu Dhabi financial district marketing"
+
+[[generated]]
+id = "2ICJv_6bddtcWvWZ9setb"
+uri = "file://public/city-marketing/sharjah-qasba-var.png"
+type = "image"
+title = "Sharjah neighbourhood local marketing"
+
+[[generated]]
+id = "PAYldPMBLDyhPwyLlgxkG"
+uri = "file://public/city-marketing/sharjah-heritage-var.png"
+type = "image"
+title = "Sharjah heritage neighbourhood marketing"
+
+[[generated]]
+id = "PXm1rinngVerceNdX0fbL"
+uri = "file://public/city-marketing/sharjah-knowledge-var.png"
+type = "image"
+title = "Sharjah knowledge district marketing"
+
+[[generated]]
+id = "S2my6RF0R6eGu78JmK9rw"
+uri = "file://public/city-marketing/dubai-residential-var.png"
+type = "image"
+title = "Dubai residential neighbourhood marketing"
+
+[[generated]]
+id = "5UolPJke1X1nOh8qMpLGm"
+uri = "file://public/city-marketing/dubai-tech-var.png"
+type = "image"
+title = "Dubai tech park neighbourhood marketing"
+
+[[generated]]
+id = "wAtAmrozvWJpHl2PlN1hF"
+uri = "file://public/city-marketing/abu-dhabi-residential-var.png"
+type = "image"
+title = "Abu Dhabi residential neighbourhood marketing"
