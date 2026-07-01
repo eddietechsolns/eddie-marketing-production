@@ -6,10 +6,10 @@ import Underline from "@tiptap/extension-underline";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Youtube from "@tiptap/extension-youtube";
-import Table from "@tiptap/extension-table";
-import TableRow from "@tiptap/extension-table-row";
-import TableCell from "@tiptap/extension-table-cell";
-import TableHeader from "@tiptap/extension-table-header";
+import { Table } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -163,7 +163,7 @@ export default function RichTextEditor({ name, defaultValue, placeholder, minHei
     if (editor && !editor.isDestroyed && defaultValue !== undefined && defaultValue !== null) {
       const current = editor.getHTML();
       if (current !== defaultValue && defaultValue !== html) {
-        editor.commands.setContent(defaultValue, false);
+        editor.commands.setContent(defaultValue, { emitUpdate: false });
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
