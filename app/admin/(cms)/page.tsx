@@ -362,7 +362,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* ── Main content + Right sidebar ──────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-[minmax(0,1fr)_360px] gap-6">
 
         {/* ── Left / Main (2/3) ───────────────────────────────────────────── */}
         <div className="lg:col-span-2 space-y-6">
@@ -402,7 +402,7 @@ export default async function AdminDashboard() {
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
                         <StatusBadge status={lead.status} />
-                        <span className="text-[11px] text-slate-400 hidden sm:block">{timeAgo(lead.createdAt)}</span>
+                        <span className="text-[11px] text-slate-400 hidden sm:block" suppressHydrationWarning>{timeAgo(lead.createdAt)}</span>
                       </div>
                     </Link>
                   ))}
@@ -448,7 +448,7 @@ export default async function AdminDashboard() {
                           {session.landingPage ?? "Unknown page"} · {session._count.messages} message{session._count.messages !== 1 ? "s" : ""}
                         </p>
                       </div>
-                      <span className="text-[11px] text-slate-400 shrink-0">{timeAgo(session.createdAt)}</span>
+                      <span className="text-[11px] text-slate-400 shrink-0" suppressHydrationWarning>{timeAgo(session.createdAt)}</span>
                     </div>
                   ))}
                 </div>
@@ -476,7 +476,7 @@ export default async function AdminDashboard() {
                       ) : (
                         <p className="text-sm text-slate-400">Nothing published yet</p>
                       )}
-                      {meta && <p className="text-xs text-slate-400">{meta}</p>}
+                      {meta && <p className="text-xs text-slate-400" suppressHydrationWarning>{meta}</p>}
                     </div>
                     {href && label && (
                       <Link href={href} className="shrink-0 text-xs text-blue-600 hover:text-blue-700 font-medium">

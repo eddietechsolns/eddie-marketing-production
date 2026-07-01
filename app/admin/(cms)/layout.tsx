@@ -8,7 +8,7 @@ export default function CmsLayout({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <AdminHeader />
         <main className="flex-1 overflow-y-auto">
-          <div className="max-w-[1400px] mx-auto px-6 py-6">{children}</div>
+          <div className="px-5 py-5 w-full min-w-0">{children}</div>
         </main>
       </div>
     </div>
