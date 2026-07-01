@@ -740,7 +740,7 @@ export default async function LeadsPage({ searchParams }: Props) {
 
                       {/* Date */}
                       <td className="px-4 py-3.5 hidden md:table-cell">
-                        <span className="text-xs text-slate-400">{timeAgo(lead.createdAt)}</span>
+                        <span className="text-xs text-slate-400" suppressHydrationWarning>{timeAgo(lead.createdAt)}</span>
                       </td>
 
                       {/* Actions */}

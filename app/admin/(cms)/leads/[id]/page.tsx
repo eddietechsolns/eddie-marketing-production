@@ -235,7 +235,7 @@ export default async function LeadDetailPage({ params }: Props) {
               {lead.company && <><span>·</span><span className="text-slate-600 font-medium">{lead.company}</span></>}
               {lead.country && <><span>·</span><span>{lead.country}</span></>}
               <span>·</span>
-              <span>Added {timeAgo(lead.createdAt)}</span>
+              <span suppressHydrationWarning>Added {timeAgo(lead.createdAt)}</span>
             </div>
           </div>
 
@@ -468,7 +468,7 @@ export default async function LeadDetailPage({ params }: Props) {
                       </div>
                       <p className="text-[11px] text-slate-400 mt-1 ml-1">
                         <span className="font-medium text-slate-500">{note.createdBy ?? "Admin"}</span>
-                        {" · "}{timeAgo(note.createdAt)}
+                        <span suppressHydrationWarning>{" · "}{timeAgo(note.createdAt)}</span>
                         <span className="ml-1 text-slate-300">· {fmtShort(note.createdAt)}</span>
                       </p>
                     </div>
@@ -516,7 +516,7 @@ export default async function LeadDetailPage({ params }: Props) {
                           <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${evStyle.bg} ${evStyle.text}`}>
                             {event.eventType}
                           </span>
-                          <span className="text-[11px] text-slate-400 mt-0.5">{timeAgo(event.createdAt)}</span>
+                          <span className="text-[11px] text-slate-400 mt-0.5" suppressHydrationWarning>{timeAgo(event.createdAt)}</span>
                         </div>
                         {event.eventText && (
                           <p className="text-xs text-slate-600 mt-1 leading-relaxed">{event.eventText}</p>
@@ -648,7 +648,7 @@ export default async function LeadDetailPage({ params }: Props) {
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-400">Created</span>
-                <span className="text-slate-700 font-medium">{timeAgo(lead.createdAt)}</span>
+                <span className="text-slate-700 font-medium" suppressHydrationWarning>{timeAgo(lead.createdAt)}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-400">Created date</span>
