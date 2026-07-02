@@ -1,10 +1,8 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
-export const BOOTSTRAP_EMAIL    = "admin@eddietechsolns.com";
-export const BOOTSTRAP_PASSWORD = "ChangeMe123!";
-const BOOTSTRAP_ROLE            = "super_admin";
-const BOOTSTRAP_NAME     = "System Administrator";
+const BOOTSTRAP_ROLE = "super_admin";
+const BOOTSTRAP_NAME = "System Administrator";
 
 /**
  * Ensures exactly one Super Administrator exists.
@@ -13,8 +11,25 @@ const BOOTSTRAP_NAME     = "System Administrator";
  * Fully idempotent — exits immediately if a super_admin already exists.
  * Gracefully skips if the role/isActive/mustChangePassword columns have not
  * yet been added to the production database (applies the SQL script first).
+ *
+ * Credentials are loaded from environment variables:
+ *   BOOTSTRAP_ADMIN_EMAIL    — the administrator e-mail address
+ *   BOOTSTRAP_ADMIN_PASSWORD — the temporary password (must be changed on first login)
+ *
+ * If either variable is absent, bootstrap creation is skipped with a warning.
  */
 export async function ensureSuperAdmin(): Promise<void> {
+  const bootstrapEmail    = process.env.BOOTSTRAP_ADMIN_EMAIL;
+  const bootstrapPassword = process.env.BOOTSTRAP_ADMIN_PASSWORD;
+
+  if (!bootstrapEmail || !bootstrapPassword) {
+    console.warn(
+      "[bootstrap] Skipping super-admin creation: " +
+      "BOOTSTRAP_ADMIN_EMAIL and BOOTSTRAP_ADMIN_PASSWORD must both be set."
+    );
+    return;
+  }
+
   try {
     // If the role column doesn't exist this throws → caught below → skip.
     const existing = await prisma.user.findFirst({
@@ -33,14 +48,14 @@ export async function ensureSuperAdmin(): Promise<void> {
   }
 
   // No super_admin found — create the bootstrap administrator.
-  const hashedPassword = await bcrypt.hash(BOOTSTRAP_PASSWORD, 12);
+  const hashedPassword = await bcrypt.hash(bootstrapPassword, 12);
 
   try {
     // Attempt with all extended fields available.
     await prisma.user.create({
       data: {
         name:               BOOTSTRAP_NAME,
-        email:              BOOTSTRAP_EMAIL,
+        email:              bootstrapEmail,
         password:           hashedPassword,
         role:               BOOTSTRAP_ROLE,
         isActive:           true,
@@ -56,7 +71,7 @@ export async function ensureSuperAdmin(): Promise<void> {
     await prisma.user.create({
       data: {
         name:     BOOTSTRAP_NAME,
-        email:    BOOTSTRAP_EMAIL,
+        email:    bootstrapEmail,
         password: hashedPassword,
         role:     BOOTSTRAP_ROLE,
         isActive: true,

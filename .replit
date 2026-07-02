@@ -41,3 +41,8 @@ externalPort = 3001
 [[ports]]
 localPort = 18378
 externalPort = 3000
+
+[userenv]
+
+[userenv.shared]
+BOOTSTRAP_ADMIN_EMAIL = "admin@eddietechsolns.com"
