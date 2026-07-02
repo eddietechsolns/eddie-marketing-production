@@ -5,6 +5,8 @@ export interface SessionPayload {
   userId: number;
   email: string;
   name: string | null;
+  /** Set to true when the user must change their password before accessing the dashboard. */
+  mustChangePassword?: boolean;
 }
 
 function getSecret() {

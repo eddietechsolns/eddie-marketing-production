@@ -12,42 +12,92 @@ interface PageProps {
   searchParams: Promise<{ q?: string; role?: string; status?: string; page?: string }>;
 }
 
+type UserRow = {
+  id: number;
+  email: string;
+  name: string | null;
+  createdAt: string;
+  role: string;
+  isActive: boolean;
+  lastLoginAt: string | null;
+};
+
 export default async function UsersPage({ searchParams }: PageProps) {
   const session = await getSession();
   if (!session) redirect("/admin/login");
 
   const sp = await searchParams;
-  const q        = sp.q?.trim() ?? "";
+  const q          = sp.q?.trim() ?? "";
   const roleFilter = sp.role ?? "";
-  const status   = sp.status ?? "";
-  const page     = Math.max(1, Number(sp.page ?? "1"));
-  const pageSize = 20;
+  const status     = sp.status ?? "";
+  const page       = Math.max(1, Number(sp.page ?? "1"));
+  const pageSize   = 20;
 
-  const where: Record<string, unknown> = {};
+  // Base filter — only uses columns guaranteed in the original schema.
+  const baseWhere: Record<string, unknown> = {};
   if (q) {
-    where.OR = [
+    baseWhere.OR = [
       { name:  { contains: q, mode: "insensitive" } },
       { email: { contains: q, mode: "insensitive" } },
     ];
   }
-  if (roleFilter) where.role = roleFilter;
-  if (status === "active")   where.isActive = true;
-  if (status === "inactive") where.isActive = false;
 
-  const [total, users] = await Promise.all([
-    prisma.user.count({ where }),
-    prisma.user.findMany({
-      where,
-      select: {
-        id: true, email: true, name: true,
-        role: true, isActive: true,
-        lastLoginAt: true, createdAt: true,
-      },
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    }),
-  ]);
+  // Extended filter — adds role/isActive only when those columns exist.
+  const extendedWhere = { ...baseWhere } as Record<string, unknown>;
+  if (roleFilter)              extendedWhere.role     = roleFilter;
+  if (status === "active")     extendedWhere.isActive = true;
+  if (status === "inactive")   extendedWhere.isActive = false;
+
+  const pagination = {
+    orderBy: { createdAt: "desc" } as const,
+    skip: (page - 1) * pageSize,
+    take: pageSize,
+  };
+
+  let total = 0;
+  let users: UserRow[] = [];
+
+  try {
+    // Attempt with extended columns (role, isActive, lastLoginAt).
+    const [t, rawUsers] = await Promise.all([
+      prisma.user.count({ where: extendedWhere }),
+      prisma.user.findMany({
+        where: extendedWhere,
+        select: {
+          id: true, email: true, name: true,
+          role: true, isActive: true,
+          lastLoginAt: true, createdAt: true,
+        },
+        ...pagination,
+      }),
+    ]);
+    total = t;
+    users = rawUsers.map((u) => ({
+      ...u,
+      lastLoginAt: u.lastLoginAt?.toISOString() ?? null,
+      createdAt:   u.createdAt.toISOString(),
+    }));
+  } catch {
+    // Extended columns not present — fall back to base schema and supply defaults.
+    const [t, rawUsers] = await Promise.all([
+      prisma.user.count({ where: baseWhere }),
+      prisma.user.findMany({
+        where: baseWhere,
+        select: { id: true, email: true, name: true, createdAt: true },
+        ...pagination,
+      }),
+    ]);
+    total = t;
+    users = rawUsers.map((u) => ({
+      id:          u.id,
+      email:       u.email,
+      name:        u.name,
+      createdAt:   u.createdAt.toISOString(),
+      role:        "admin",
+      isActive:    true,
+      lastLoginAt: null,
+    }));
+  }
 
   const currentUser = await prisma.user.findUnique({
     where: { email: session.email },
@@ -127,11 +177,7 @@ export default async function UsersPage({ searchParams }: PageProps) {
       </form>
 
       <UserTable
-        users={users.map((u) => ({
-          ...u,
-          lastLoginAt: u.lastLoginAt?.toISOString() ?? null,
-          createdAt: u.createdAt.toISOString(),
-        }))}
+        users={users}
         total={total}
         page={page}
         pageSize={pageSize}

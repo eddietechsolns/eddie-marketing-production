@@ -21,6 +21,10 @@ const LEGACY_REDIRECTS: Record<string, string> = {
 
 const PUBLIC_ADMIN_PATHS = ["/admin/login"];
 
+// The password-change page is behind auth but must be reachable even when
+// the mustChangePassword claim is set in the JWT.
+const CHANGE_PASSWORD_PATH = "/admin/change-password";
+
 function getSecret() {
   return new TextEncoder().encode(process.env.SESSION_SECRET ?? "fallback-secret-change-me");
 }
@@ -51,14 +55,25 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/admin/login", request.url));
   }
 
+  let payload: Record<string, unknown>;
   try {
-    await jwtVerify(token, getSecret());
-    return NextResponse.next();
+    const result = await jwtVerify(token, getSecret());
+    payload = result.payload as Record<string, unknown>;
   } catch {
     const response = NextResponse.redirect(new URL("/admin/login", request.url));
     response.cookies.delete("admin-token");
     return response;
   }
+
+  // ── Password change enforcement ───────────────────────────────────────────
+  // If the mustChangePassword claim is set in the JWT, the user must complete
+  // the change-password flow before accessing any other admin page.
+  // The change-password API issues a new token without this claim once done.
+  if (payload.mustChangePassword === true && pathname !== CHANGE_PASSWORD_PATH) {
+    return NextResponse.redirect(new URL(CHANGE_PASSWORD_PATH, request.url));
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
