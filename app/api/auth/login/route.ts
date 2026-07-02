@@ -15,7 +15,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    // Explicit select — only queries columns guaranteed to exist in the base schema.
+    // This avoids "column does not exist" errors when role/isActive/lastLoginAt
+    // have not yet been added to the production database.
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, email: true, password: true, name: true },
+    });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return NextResponse.json(
@@ -30,11 +36,13 @@ export async function POST(request: Request) {
       name: user.name,
     });
 
+    // Optional enrichment — safe to fail if the column does not yet exist.
     await prisma.user.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
-    });
+    }).catch(() => {});
 
+    // Optional audit trail — safe to fail if UserActivity does not yet exist.
     await prisma.userActivity.create({
       data: {
         userId: user.id,

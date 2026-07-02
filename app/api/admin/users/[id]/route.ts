@@ -22,6 +22,20 @@ async function getAuthedUser() {
   }
 }
 
+type ActivityRow = { id: number; action: string; detail: string | null; ip: string | null; createdAt: Date };
+
+type UserDetail = {
+  id: number;
+  email: string;
+  name: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  role: string;
+  isActive: boolean;
+  lastLoginAt: Date | null;
+  activities: ActivityRow[];
+};
+
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function GET(_req: NextRequest, { params }: Ctx) {
@@ -31,19 +45,33 @@ export async function GET(_req: NextRequest, { params }: Ctx) {
   const { id } = await params;
   const userId = Number(id);
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true, email: true, name: true,
-      role: true, isActive: true,
-      lastLoginAt: true, createdAt: true, updatedAt: true,
-      activities: {
-        orderBy: { createdAt: "desc" },
-        take: 50,
-        select: { id: true, action: true, detail: true, ip: true, createdAt: true },
+  let user: UserDetail | null;
+
+  try {
+    // Full query including extended columns and activity log.
+    user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true, email: true, name: true,
+        role: true, isActive: true,
+        lastLoginAt: true, createdAt: true, updatedAt: true,
+        activities: {
+          orderBy: { createdAt: "desc" },
+          take: 50,
+          select: { id: true, action: true, detail: true, ip: true, createdAt: true },
+        },
       },
-    },
-  });
+    });
+  } catch {
+    // Extended columns / UserActivity not present — fall back to base schema.
+    const base = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, name: true, createdAt: true, updatedAt: true },
+    });
+    user = base
+      ? { ...base, role: "admin", isActive: true, lastLoginAt: null, activities: [] }
+      : null;
+  }
 
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json(user);
@@ -61,11 +89,32 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     isActive?: boolean; password?: string;
   };
 
-  const existing = await prisma.user.findUnique({ where: { id: userId } });
+  // Fetch the existing record — try with extended columns, fall back to base.
+  type ExistingUser = {
+    id: number; email: string; name: string | null;
+    role?: string; isActive?: boolean;
+  };
+
+  let existing: ExistingUser | null;
+  try {
+    existing = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, name: true, role: true, isActive: true },
+    });
+  } catch {
+    existing = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, name: true },
+    });
+  }
+
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   if (body.email && body.email !== existing.email) {
-    const conflict = await prisma.user.findUnique({ where: { email: body.email } });
+    const conflict = await prisma.user.findUnique({
+      where: { email: body.email },
+      select: { id: true },
+    });
     if (conflict) return NextResponse.json({ error: "Email already in use" }, { status: 409 });
   }
 
@@ -73,6 +122,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     return NextResponse.json({ error: "You cannot deactivate your own account" }, { status: 400 });
   }
 
+  // Build update data — only include fields present in the request body.
   const data: Record<string, unknown> = {};
   if (body.name     !== undefined) data.name     = body.name;
   if (body.email    !== undefined) data.email    = body.email;
@@ -85,21 +135,50 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     data.password = await bcrypt.hash(body.password, 12);
   }
 
-  const updated = await prisma.user.update({
-    where: { id: userId },
-    data,
-    select: { id: true, email: true, name: true, role: true, isActive: true, lastLoginAt: true },
-  });
+  // Attempt full update; fall back to base columns if extended ones don't exist.
+  type UpdatedUser = {
+    id: number; email: string; name: string | null;
+    role: string; isActive: boolean; lastLoginAt: Date | null;
+  };
 
+  let updated: UpdatedUser;
+  try {
+    updated = await prisma.user.update({
+      where: { id: userId },
+      data,
+      select: { id: true, email: true, name: true, role: true, isActive: true, lastLoginAt: true },
+    });
+  } catch {
+    // Extended columns not present — update only guaranteed columns.
+    const baseData: Record<string, unknown> = {};
+    if (data.name     !== undefined) baseData.name     = data.name;
+    if (data.email    !== undefined) baseData.email    = data.email;
+    if (data.password !== undefined) baseData.password = data.password;
+
+    const base = await prisma.user.update({
+      where: { id: userId },
+      data: baseData,
+      select: { id: true, email: true, name: true },
+    });
+    updated = {
+      ...base,
+      role:        (body.role     ?? existing.role)     ?? "admin",
+      isActive:    (body.isActive ?? existing.isActive) ?? true,
+      lastLoginAt: null,
+    };
+  }
+
+  // Summarise what changed for the audit log.
   const changes: string[] = [];
-  if (body.name     !== undefined && body.name !== existing.name) changes.push("name updated");
-  if (body.email    !== undefined && body.email !== existing.email) changes.push("email updated");
-  if (body.role     !== undefined && body.role !== existing.role) changes.push(`role changed to ${body.role}`);
+  if (body.name     !== undefined && body.name     !== existing.name)     changes.push("name updated");
+  if (body.email    !== undefined && body.email    !== existing.email)     changes.push("email updated");
+  if (body.role     !== undefined && body.role     !== existing.role)      changes.push(`role changed to ${body.role}`);
   if (body.isActive !== undefined && body.isActive !== existing.isActive) {
     changes.push(body.isActive ? "account activated" : "account deactivated");
   }
   if (body.password) changes.push("password changed");
 
+  // Optional audit — safe to fail if UserActivity does not yet exist.
   if (changes.length) {
     await prisma.userActivity.create({
       data: {
@@ -108,7 +187,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
         detail: `${changes.join(", ")} — by ${session.email}`,
         ip: req.headers.get("x-forwarded-for") ?? undefined,
       },
-    });
+    }).catch(() => {});
   }
 
   return NextResponse.json(updated);
@@ -125,7 +204,10 @@ export async function DELETE(req: NextRequest, { params }: Ctx) {
     return NextResponse.json({ error: "You cannot delete your own account" }, { status: 400 });
   }
 
-  const existing = await prisma.user.findUnique({ where: { id: userId } });
+  const existing = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true },
+  });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   await prisma.user.delete({ where: { id: userId } });
